@@ -110,7 +110,7 @@ const houses = {
 };
 
 function normalize(value) {
-  return value.normalize("NFKC").trim().toLocaleLowerCase("fr-FR").replace(/\\s+/g, " ");
+  return value.normalize("NFKC").trim().toLocaleLowerCase("fr-FR").replace(/\s+/g, " ");
 }
 
 function App() {
