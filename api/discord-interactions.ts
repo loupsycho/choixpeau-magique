@@ -22,6 +22,7 @@ export default async function handler(req: any, res: any) {
   const publicKeyHex = process.env.DISCORD_PUBLIC_KEY;
   const signature = req.headers['x-signature-ed25519'];
   const timestamp = req.headers['x-signature-timestamp'];
+  console.info('Discord interaction request received.', { method: req.method, hasPublicKey: Boolean(publicKeyHex), hasSignature: typeof signature === 'string', hasTimestamp: typeof timestamp === 'string' });
 
   if (!publicKeyHex || !/^[a-f0-9]{64}$/i.test(publicKeyHex)) {
     console.error('DISCORD_PUBLIC_KEY is missing or invalid.');
@@ -48,12 +49,16 @@ export default async function handler(req: any, res: any) {
     );
 
     if (!valid) {
+      console.error('Discord interaction signature verification failed.');
       return res.status(401).json({ error: 'Invalid request signature.' });
     }
+
+    console.info('Discord interaction signature verified.');
 
     const interaction = JSON.parse(rawBody.toString('utf8'));
 
     if (interaction.type === 1) {
+      console.info('Discord PING accepted.');
       return res.status(200).json({ type: 1 });
     }
 
