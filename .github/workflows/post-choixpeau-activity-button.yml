@@ -1,0 +1,35 @@
+name: Post Choixpeau Magique Activity button
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  post-button:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post the Choixpeau Activity launch button
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_CHANNEL_ID: "1573018404183351508"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "$DISCORD_BOT_TOKEN" ]; then
+            echo "::error::Missing repository secret DISCORD_BOT_TOKEN"
+            exit 1
+          fi
+
+          BODY='{"content":"**CHOIXPEAU MAGIQUE**\nDécouvrez votre maison à Poudlard grâce à la cérémonie du Choixpeau.","components":[{"type":1,"components":[{"type":2,"style":1,"label":"Ouvrir le Choixpeau magique","custom_id":"open_choixpeau_activity","emoji":{"name":"🎩"}}]}]}'
+
+          curl --fail-with-body --silent --show-error \
+            -X POST "https://discord.com/api/v10/channels/$DISCORD_CHANNEL_ID/messages" \
+            -H "Authorization: Bot $DISCORD_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "$BODY"
+
+          echo
+          echo "Choixpeau Magique Activity button posted."
