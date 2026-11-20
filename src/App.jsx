@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { DiscordSDK } from "@discord/embedded-app-sdk";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://embokhuqnseawkftoqmn.supabase.co";
+const SUPABASE_URL = "https://embokhuqnseawkftoqmn.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_GuW3T1VLxl6IqsSHrQNnyA_kuVhWQ5E";
 const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
   ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
