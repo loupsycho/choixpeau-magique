@@ -183,8 +183,22 @@ function App() {
       const { data, error: exchangeError } = await supabase.functions.invoke("sorting-test", {
         body: { action: "exchange", code }
       });
-      if (exchangeError || data?.error || !data?.access_token) {
-        throw new Error(data?.error || "Discord n'a pas pu confirmer la connexion.");
+      if (exchangeError) {
+        let detail = exchangeError.message || "Erreur de communication avec le serveur.";
+        const response = exchangeError.context;
+        if (response && typeof response.clone === "function") {
+          try {
+            const serverError = await response.clone().json();
+            if (serverError?.error) detail = serverError.error;
+          } catch {
+            // Keep the original communication error when the response is not JSON.
+          }
+        }
+        throw new Error(`Erreur de connexion au serveur (${response?.status || "réseau"}) : ${detail}`);
+      }
+      if (data?.error) throw new Error(data.error);
+      if (!data?.access_token) {
+        throw new Error("Le serveur n'a pas renvoyé de jeton Discord. Réessaie depuis l'activité.");
       }
       const authenticated = await sdk.commands.authenticate({ access_token: data.access_token });
       const user = data.user || authenticated?.user;
