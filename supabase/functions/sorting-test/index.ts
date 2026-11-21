@@ -210,6 +210,49 @@ const scoring: Record<string, string> = {
   q50d: "Gryffondor"
 };
 
+const legacyScoring: Record<string, string> = {
+  q1a: "Serdaigle",
+  q1b: "Gryffondor",
+  q1c: "Serpentard",
+  q1d: "Poufsouffle",
+  q2a: "Serdaigle",
+  q2b: "Gryffondor",
+  q2c: "Poufsouffle",
+  q2d: "Serpentard",
+  q3a: "Serdaigle",
+  q3b: "Serpentard",
+  q3c: "Poufsouffle",
+  q3d: "Gryffondor",
+  q4a: "Poufsouffle",
+  q4b: "Serdaigle",
+  q4c: "Serpentard",
+  q4d: "Gryffondor",
+  q5a: "Serdaigle",
+  q5b: "Serpentard",
+  q5c: "Poufsouffle",
+  q5d: "Gryffondor",
+  q6a: "Serdaigle",
+  q6b: "Gryffondor",
+  q6c: "Poufsouffle",
+  q6d: "Serpentard",
+  q7a: "Serdaigle",
+  q7b: "Gryffondor",
+  q7c: "Serpentard",
+  q7d: "Poufsouffle",
+  q8a: "Serdaigle",
+  q8b: "Serpentard",
+  q8c: "Gryffondor",
+  q8d: "Poufsouffle",
+  q9a: "Gryffondor",
+  q9b: "Serdaigle",
+  q9c: "Serpentard",
+  q9d: "Poufsouffle",
+  q10a: "Gryffondor",
+  q10b: "Serdaigle",
+  q10c: "Serpentard",
+  q10d: "Poufsouffle"
+};
+
 function normalize(value: string) {
   return value.normalize("NFKC").trim().toLocaleLowerCase("fr-FR").replace(/\s+/g, " ");
 }
@@ -325,9 +368,14 @@ Deno.serve(async (req: Request) => {
       if (!firstName || !lastName || firstName.length > 60 || lastName.length > 60) {
         return json({ error: "Renseigne le prénom et le nom du personnage." }, 400);
       }
-      if (!Array.isArray(answers) || answers.length !== 10 ||
-        answers.some((answer) => typeof answer !== "string" || !Object.prototype.hasOwnProperty.call(scoring, answer)) ||
-        new Set(answers.map((answer) => answer.slice(0, 3))).size !== 10) {
+      const legacyFormat = Array.isArray(answers) && answers.length === 10 &&
+        answers.every((answer, i) => typeof answer === "string" &&
+          Object.prototype.hasOwnProperty.call(legacyScoring, answer) &&
+          answer.startsWith("q" + (i + 1)));
+      const randomizedFormat = Array.isArray(answers) && answers.length === 10 &&
+        answers.every((answer) => typeof answer === "string" && Object.prototype.hasOwnProperty.call(scoring, answer)) &&
+        new Set(answers.map((answer) => answer.slice(0, 3))).size === 10;
+      if (!legacyFormat && !randomizedFormat) {
         return json({ error: "Les réponses envoyées ne sont pas valides." }, 400);
       }
       const characterName = `${firstName} ${lastName}`.replace(/\s+/g, " ").trim();
@@ -341,7 +389,7 @@ Deno.serve(async (req: Request) => {
       const totals: Record<string, number> = {
         Gryffondor: 0, Serpentard: 0, Serdaigle: 0, Poufsouffle: 0,
       };
-      for (const answer of answers) totals[scoring[answer]]++;
+      for (const answer of answers) totals[(legacyFormat ? legacyScoring : scoring)[answer]]++;
       const highest = Math.max(...Object.values(totals));
       const finalists = Object.keys(totals).filter((house) => totals[house] === highest);
       const random = new Uint32Array(1);
