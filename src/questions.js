@@ -1099,50 +1099,6 @@ export const questions = [
         "label": "Tu réorganises les moyens disponibles pour sauver l’objectif."
       }
     ]
-  },
-  {
-    "id": 51,
-    "text": "Tu peux choisir la réputation que l’on retiendra de toi.",
-    "answers": [
-      {
-        "id": "q51a",
-        "label": "Quelqu’un qui a défendu ses convictions sans reculer."
-      },
-      {
-        "id": "q51b",
-        "label": "Quelqu’un dont les idées ont fait avancer les choses."
-      },
-      {
-        "id": "q51c",
-        "label": "Quelqu’un sur qui les autres ont toujours pu compter."
-      },
-      {
-        "id": "q51d",
-        "label": "Quelqu’un qui a su transformer ses ambitions en réussites."
-      }
-    ]
-  },
-  {
-    "id": 52,
-    "text": "Un choix difficile oppose ton intérêt personnel à celui du groupe.",
-    "answers": [
-      {
-        "id": "q52a",
-        "label": "Tu cherches une solution qui ne sacrifie personne inutilement."
-      },
-      {
-        "id": "q52b",
-        "label": "Tu évalues les conséquences à long terme pour chacun."
-      },
-      {
-        "id": "q52c",
-        "label": "Tu privilégies le groupe si la situation l’exige réellement."
-      },
-      {
-        "id": "q52d",
-        "label": "Tu assumes ton intérêt si tu estimes qu’il est légitime."
-      }
-    ]
   }
 ];
 
