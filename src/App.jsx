@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { DiscordSDK, patchUrlMappings } from "@discord/embedded-app-sdk";
+import { questions, drawQuestions } from "./questions.js";
 
 const SUPABASE_URL = "https://embokhuqnseawkftoqmn.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_GuW3T1VLxl6IqsSHrQNnyA_kuVhWQ5E";
@@ -18,99 +19,6 @@ const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
   ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 const DISCORD_CLIENT_ID = "1573286160820740166";
-
-const questions = [
-  {
-    text: "Une lettre sans signature apparaît sur ton bureau au milieu de la nuit. Elle ne contient qu'une adresse que tu ne connais pas.",
-    answers: [
-      ["q1a", "Tu cherches d'abord qui a pu l'envoyer et pourquoi."],
-      ["q1b", "Tu t'y rends. Certaines occasions ne se présentent qu'une fois."],
-      ["q1c", "Tu gardes la lettre et observes si quelqu'un vient la réclamer."],
-      ["q1d", "Tu en parles à une personne en qui tu as confiance."]
-    ]
-  },
-  {
-    text: "Au cours d'un travail de groupe, tu réalises que le résultat sera mauvais si personne ne change de méthode.",
-    answers: [
-      ["q2a", "Tu proposes une autre approche et expliques ton raisonnement."],
-      ["q2b", "Tu prends les choses en main avant que tout échoue."],
-      ["q2c", "Tu t'assures que personne ne soit laissé de côté."],
-      ["q2d", "Tu trouves comment obtenir le meilleur résultat avec les moyens disponibles."]
-    ]
-  },
-  {
-    text: "Un portrait dans un couloir semble te reconnaître, alors que tu ne l'as jamais rencontré.",
-    answers: [
-      ["q3a", "Tu lui demandes ce qu'il sait et comment il te connaît."],
-      ["q3b", "Tu lui réponds avec aplomb, sans montrer ta surprise."],
-      ["q3c", "Tu te demandes si quelqu'un d'autre a vécu la même chose."],
-      ["q3d", "Tu reviens le voir plus tard, quand le couloir sera tranquille."]
-    ]
-  },
-  {
-    text: "On te confie quelque chose de précieux sans t'expliquer pourquoi tu as été choisi.",
-    answers: [
-      ["q4a", "Tu acceptes et tu prends cette responsabilité au sérieux."],
-      ["q4b", "Tu veux connaître les raisons avant de donner ta réponse."],
-      ["q4c", "Tu acceptes : cette confiance pourrait ouvrir une porte inattendue."],
-      ["q4d", "Tu vérifies que la personne n'a pas besoin d'aide supplémentaire."]
-    ]
-  },
-  {
-    text: "Tu peux obtenir une réponse à une seule question, mais tu devras renoncer à une certitude à laquelle tu tiens.",
-    answers: [
-      ["q5a", "Tu choisis la question qui pourrait tout remettre en perspective."],
-      ["q5b", "Tu demandes ce qui te permettra d'aller plus loin."],
-      ["q5c", "Tu préfères ne pas sacrifier ce qui te construit."],
-      ["q5d", "Tu prends le risque : une vérité difficile vaut mieux qu'un regret."]
-    ]
-  },
-  {
-    text: "Dans une pièce inconnue, quatre objets attirent ton attention : une clé usée, une carte incomplète, une montre arrêtée et une enveloppe scellée.",
-    answers: [
-      ["q6a", "La carte : ses parties manquantes t'intriguent."],
-      ["q6b", "La clé : tu veux savoir quelle porte elle peut ouvrir."],
-      ["q6c", "L'enveloppe : tu te demandes à qui elle était destinée."],
-      ["q6d", "La montre : tu aimerais comprendre pourquoi elle s'est arrêtée."]
-    ]
-  },
-  {
-    text: "Une rumeur injuste circule au sujet de quelqu'un que tu connais à peine.",
-    answers: [
-      ["q7a", "Tu cherches à savoir ce qui s'est réellement passé."],
-      ["q7b", "Tu refuses de laisser la rumeur décider de son sort."],
-      ["q7c", "Tu observes qui propage l'histoire et ce que chacun y gagne."],
-      ["q7d", "Tu vas voir la personne pour lui proposer ton soutien."]
-    ]
-  },
-  {
-    text: "Tu retrouves un ancien carnet rempli de notes dont certaines pages ont été arrachées.",
-    answers: [
-      ["q8a", "Tu reconstitues les passages manquants à partir des indices."],
-      ["q8b", "Tu cherches la personne qui l'a écrit."],
-      ["q8c", "Tu conserves le carnet : il pourrait devenir utile."],
-      ["q8d", "Tu le rapportes à l'endroit où quelqu'un pourrait le chercher."]
-    ]
-  },
-  {
-    text: "Une occasion importante se présente, mais personne ne peut te garantir qu'elle fonctionnera.",
-    answers: [
-      ["q9a", "Tu te lances : tu préfères tenter que te demander toute ta vie."],
-      ["q9b", "Tu étudies les risques et prépares plusieurs scénarios."],
-      ["q9c", "Tu réfléchis à la place que cette occasion pourrait prendre dans ton avenir."],
-      ["q9d", "Tu demandes conseil à ceux qui seront concernés par ton choix."]
-    ]
-  },
-  {
-    text: "Lorsque tu repenses à tes décisions, qu'est-ce qui compte le plus pour toi ?",
-    answers: [
-      ["q10a", "Avoir agi en accord avec ce que tu crois juste."],
-      ["q10b", "Avoir compris quelque chose que tu ignorais auparavant."],
-      ["q10c", "Avoir construit quelque chose qui te survivra."],
-      ["q10d", "Ne pas avoir abandonné les personnes qui comptaient sur toi."]
-    ]
-  }
-];
 
 const houses = {
   Gryffondor: { animal: "🦁", motto: "L'audace et le courage ont parfois le goût du risque.", color: "red" },
@@ -131,6 +39,7 @@ function App() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [answers, setAnswers] = useState({});
+  const [quizQuestions, setQuizQuestions] = useState([]);
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -142,7 +51,7 @@ function App() {
   const sdkRef = useRef(null);
   const startedRef = useRef(false);
 
-  const progress = useMemo(() => ((step + 1) / questions.length) * 100, [step]);
+  const progress = useMemo(() => ((step + 1) / 10) * 100, [step]);
   const filteredGroups = useMemo(() => {
     const term = normalize(adminSearch);
     if (!term) return adminGroups;
@@ -258,6 +167,7 @@ function App() {
         return;
       }
       setAnswers({});
+      setQuizQuestions(drawQuestions());
       setStep(0);
       setScreen("quiz");
     } catch (e) {
@@ -278,7 +188,7 @@ function App() {
       const data = await callAction("submit", {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        answers: questions.map((_, index) => answers[index])
+        answers: quizQuestions.map((question, index) => answers[index])
       });
       setResult(data);
       setFirstName(data.character_name.split(" ")[0] || firstName);
@@ -333,6 +243,7 @@ function App() {
     setError("");
     setResult(null);
     setAnswers({});
+    setQuizQuestions([]);
     setStep(0);
     setFirstName("");
     setLastName("");
@@ -400,8 +311,8 @@ function App() {
           <div className="quiz-meta"><span>LA CÉRÉMONIE</span><span>{String(step + 1).padStart(2, "0")} / 10</span></div>
           <div className="progress"><span style={{ width: progress + "%" }} /></div>
           <p className="question-kicker">LE CHOIXPEAU TE DEMANDE…</p>
-          <h2>{questions[step].text}</h2>
-          <div className="answers">{questions[step].answers.map(([id, label], index) =>
+          <h2>{quizQuestions[step]?.text}</h2>
+          <div className="answers">{quizQuestions[step]?.answers.map(({ id, label }, index) =>
             <button key={id} className={"answer " + (answers[step] === id ? "selected" : "")} onClick={() => choose(id)}>
               <span className="answer-letter">{String.fromCharCode(65 + index)}</span><span>{label}</span><span className="answer-check">✦</span>
             </button>
