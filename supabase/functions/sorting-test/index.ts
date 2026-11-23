@@ -345,9 +345,22 @@ Deno.serve(async (req: Request) => {
       return json({ results: (data || []).map(publicResult) });
     }
 
-    if (action === "admin") {
+    if (action === "admin" || action === "delete") {
       const adminDiscordId = Deno.env.get("ADMIN_DISCORD_ID");
       if (!adminDiscordId || discordId !== adminDiscordId) return json({ error: "Cet espace est réservé à l'administratrice." }, 403);
+
+      if (action === "delete") {
+        const resultId = typeof body.result_id === "string" ? body.result_id : "";
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(resultId)) {
+          return json({ error: "Résultat à supprimer invalide." }, 400);
+        }
+        const { data, error } = await admin.from("sorting_results")
+          .delete().eq("id", resultId).select("id").maybeSingle();
+        if (error) throw error;
+        if (!data) return json({ error: "Ce résultat n'existe plus." }, 404);
+        return json({ deleted: true, id: data.id });
+      }
+
       const { data, error } = await admin.from("sorting_results")
         .select("id, discord_name, character_name, house, created_at, player_key")
         .order("created_at", { ascending: false });
@@ -392,9 +405,14 @@ Deno.serve(async (req: Request) => {
       for (const answer of answers) totals[(legacyFormat ? legacyScoring : scoring)[answer]]++;
       const highest = Math.max(...Object.values(totals));
       const finalists = Object.keys(totals).filter((house) => totals[house] === highest);
-      const random = new Uint32Array(1);
-      crypto.getRandomValues(random);
-      const house = finalists[random[0] % finalists.length];
+      const chosenHouse = typeof body.chosen_house === "string" ? body.chosen_house : "";
+      if (finalists.length > 1 && !chosenHouse) {
+        return json({ tie: true, finalists });
+      }
+      if (chosenHouse && !finalists.includes(chosenHouse)) {
+        return json({ error: "La maison choisie ne fait pas partie des maisons à égalité." }, 400);
+      }
+      const house = chosenHouse || finalists[0];
 
       const { data: inserted, error: insertError } = await admin.from("sorting_results").insert({
         discord_name: discordName,

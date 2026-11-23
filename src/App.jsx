@@ -48,6 +48,9 @@ function App() {
   const [adminGroups, setAdminGroups] = useState([]);
   const [adminSearch, setAdminSearch] = useState("");
   const [adminUser, setAdminUser] = useState(false);
+  const [tieHouses, setTieHouses] = useState([]);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [notice, setNotice] = useState("");
   const sdkRef = useRef(null);
   const startedRef = useRef(false);
 
@@ -190,6 +193,12 @@ function App() {
         last_name: lastName.trim(),
         answers: quizQuestions.map((question, index) => answers[index])
       });
+      if (data.tie) {
+        setTieHouses(data.finalists || []);
+        setScreen("tie");
+        return;
+      }
+      setTieHouses([]);
       setResult(data);
       setFirstName(data.character_name.split(" ")[0] || firstName);
       setLastName(data.character_name.split(" ").slice(1).join(" ") || lastName);
@@ -202,9 +211,36 @@ function App() {
     }
   }
 
+  async function chooseHouse(house) {
+    if (!tieHouses.includes(house)) return;
+    setBusy(true);
+    setError("");
+    try {
+      const data = await callAction("submit", {
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        answers: quizQuestions.map((question, index) => answers[index]),
+        chosen_house: house
+      });
+      if (data.tie) throw new Error("Le choix de maison n'a pas pu être confirmé. Réessaie.");
+      setTieHouses([]);
+      setResult(data);
+      setFirstName(data.character_name.split(" ")[0] || firstName);
+      setLastName(data.character_name.split(" ").slice(1).join(" ") || lastName);
+      setScreen("result");
+      await loadMine();
+    } catch (e) {
+      setError(e.message || "Impossible d'enregistrer ton choix.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function openAdmin() {
     setScreen("admin");
     setError("");
+    setNotice("");
+    setDeleteTarget(null);
     setBusy(true);
     try {
       const data = await callAction("admin");
@@ -231,6 +267,26 @@ function App() {
     }
   }
 
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      await callAction("delete", { result_id: deleteTarget.id });
+      const deletedName = deleteTarget.character_name;
+      setAdminGroups(current => current
+        .map(group => ({ ...group, characters: group.characters.filter(row => row.id !== deleteTarget.id) }))
+        .filter(group => group.characters.length > 0));
+      setDeleteTarget(null);
+      setNotice(`Le résultat de ${deletedName} et son historique ont été supprimés.`);
+    } catch (e) {
+      setError(e.message || "Impossible de supprimer ce résultat.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function showSavedResult(row) {
     setResult({ ...row, already_sorted: true });
     setFirstName(row.character_name.split(" ")[0] || "");
@@ -242,6 +298,9 @@ function App() {
     setScreen("home");
     setError("");
     setResult(null);
+    setTieHouses([]);
+    setDeleteTarget(null);
+    setNotice("");
     setAnswers({});
     setQuizQuestions([]);
     setStep(0);
@@ -326,6 +385,21 @@ function App() {
           </div>
         </div>}
 
+        {screen === "tie" && <div className="panel tie-panel fade-in">
+          <div className="eyebrow">LE CHOIXPEAU HÉSITE</div>
+          <h2>Plusieurs maisons te correspondent…</h2>
+          <p className="panel-copy">Le Choixpeau a relevé une égalité entre les maisons affichées. À toi de choisir celle dans laquelle ton personnage sera accueilli.</p>
+          <div className="tie-choices">
+            {tieHouses.map(house => <button key={house} className={"tie-choice " + (houses[house]?.color || "")} disabled={busy} onClick={() => chooseHouse(house)}>
+              <span className="tie-animal">{houses[house]?.animal}</span>
+              <strong>{house}</strong>
+              <small>{houses[house]?.motto}</small>
+            </button>)}
+          </div>
+          {error && <p className="error">{error}</p>}
+          <p className="microcopy">Ton choix deviendra définitif une fois confirmé.</p>
+        </div>}
+
         {screen === "result" && <div className={"result-panel result-card fade-in " + (houses[result?.house]?.color || "")}>
           <div className="eyebrow">LA DÉCISION EST PRISE</div>
           <div className="result-animal">{houses[result?.house]?.animal || "✦"}</div>
@@ -345,6 +419,14 @@ function App() {
           <h2>Registre du Choixpeau</h2>
           {busy && <p className="panel-copy">Vérification de ton accès administrateur…</p>}
           {error && <p className="error">{error}</p>}
+          {notice && <p className="success-note">{notice}</p>}
+          {deleteTarget && <div className="delete-confirmation">
+            <p>Supprimer définitivement le résultat de <strong>{deleteTarget.character_name}</strong> ? Son historique sera également retiré.</p>
+            <div>
+              <button className="text-button" disabled={busy} onClick={() => setDeleteTarget(null)}>Annuler</button>
+              <button className="danger-button" disabled={busy} onClick={confirmDelete}>{busy ? "Suppression…" : "Confirmer la suppression"}</button>
+            </div>
+          </div>}
           {adminUser && <>
             <div className="admin-heading"><p>{adminGroups.reduce((total, group) => total + group.characters.length, 0)} personnage(s) réparti(s) · {adminGroups.length} joueur(s)</p><button className="text-button" disabled={busy} onClick={refreshAdmin}>Actualiser ↻</button></div>
             <label>Rechercher un joueur ou un personnage<input value={adminSearch} onChange={e => setAdminSearch(e.target.value)} placeholder="Nom Discord, prénom ou nom…" /></label>
@@ -352,7 +434,7 @@ function App() {
               {filteredGroups.length ? filteredGroups.map((group, index) => <details className="player-group" key={group.discord_name + index}>
                 <summary><span>♟</span><strong>{group.discord_name}</strong><small>{group.characters.length} personnage(s)</small></summary>
                 <div className="player-characters">{group.characters.map(row => <div className="result-row" key={row.id}>
-                  <span>{houses[row.house]?.animal}</span><div><strong>{row.character_name}</strong><small>{row.house}</small></div><time>{new Date(row.created_at).toLocaleDateString("fr-FR")}</time>
+                  <span>{houses[row.house]?.animal}</span><div><strong>{row.character_name}</strong><small>{row.house}</small></div><time>{new Date(row.created_at).toLocaleDateString("fr-FR")}</time><button className="admin-delete" disabled={busy} onClick={() => { setDeleteTarget(row); setNotice(""); setError(""); }}>Supprimer</button>
                 </div>)}</div>
               </details>) : <p className="empty">Aucun résultat pour cette recherche.</p>}
             </div>

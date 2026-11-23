@@ -7,3 +7,15 @@
 .result-character{font-family:Cinzel,serif;font-size:24px;color:#f0e4cd;margin:5px 0 8px}.acceptance-message{font-size:19px;line-height:1.5;color:#d8c9ad;max-width:430px;margin:0 auto 12px}.saved-note{font-size:13px;color:#bcae95;line-height:1.5;margin:12px auto;max-width:420px}
 .player-group{border-bottom:1px solid #6d583b66}.player-group summary{display:flex;align-items:center;gap:12px;list-style:none;padding:15px 8px;cursor:pointer;color:#e9ddc9}.player-group summary::-webkit-details-marker{display:none}.player-group summary>span{color:#c5a567;font-size:20px}.player-group summary strong{font-size:17px;font-weight:500;flex:1}.player-group summary small{color:#a99f90;font-size:12px}.player-characters{padding:0 0 8px 24px}
 @media(max-width:520px){.topbar{height:auto;min-height:150px;padding:88px 16px 16px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:14px}.brand{align-self:flex-start}.topbar-right{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.discord-player{max-width:42%;font-size:11px}.admin-link{font-size:12px;padding:8px 0;white-space:nowrap}.content{padding-top:26px}.player-group summary{gap:8px}.player-characters{padding-left:8px}.result-character{font-size:21px}}
+
+.tie-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:24px 0}
+.tie-choice{display:flex;flex-direction:column;align-items:center;gap:9px;padding:20px 14px;background:#17121e;border:1px solid #8b754f;color:#eadfc9;cursor:pointer;text-align:center;min-height:160px}
+.tie-choice:disabled{opacity:.55;cursor:wait}.tie-choice.red{border-color:#b97865}.tie-choice.green{border-color:#7e9b7d}.tie-choice.blue{border-color:#819cbd}.tie-choice.gold{border-color:#c4a567}
+.tie-animal{font-size:34px}.tie-choice strong{font-family:Cinzel,serif;font-size:17px}.tie-choice small{font-size:12px;line-height:1.45;color:#bdb2a0}
+.admin-delete{border:1px solid #8e5d54;background:transparent;color:#e4aaa0;padding:7px 9px;font-size:11px;cursor:pointer;white-space:nowrap}
+.admin-delete:disabled,.danger-button:disabled{opacity:.5;cursor:wait}
+.delete-confirmation{margin:18px 0;padding:15px;background:#21171b;border:1px solid #98665c;color:#e8d8ce}
+.delete-confirmation p{margin:0 0 12px;line-height:1.5}.delete-confirmation div{display:flex;justify-content:flex-end;align-items:center;gap:16px;flex-wrap:wrap}
+.danger-button{border:1px solid #a66a60;background:#5b302d;color:#fff0e9;padding:10px 13px;cursor:pointer;font-size:12px}
+.success-note{color:#a8c69f;text-align:center;font-size:14px;line-height:1.5}
+@media(max-width:520px){.result-row{gap:8px}.result-row strong{font-size:14px}.result-row time{font-size:10px}.admin-delete{padding:6px;font-size:10px}}
